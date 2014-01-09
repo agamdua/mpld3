@@ -224,11 +224,17 @@ class D3Figure(D3Base):
 
     def _render(self, d3_url=None,
                 standalone=False, title=None,
-                with_js_includes=True, extra_js=None,
-                with_style=True, extra_style=None,
-                with_body=True, extra_body=None,
+                with_js_includes=True, extra_js='',
+                with_style=True, extra_style='',
+                with_body=True, extra_body='',
                 with_reset_button=False):
         """Render the figure (or parts of the figure) as d3."""
+        if hasattr(self.fig, 'plugins'):
+            for plugin in self.fig.plugins:
+                extra_js += plugin.js()
+                extra_style += plugin.style()
+                extra_body += plugin.body()
+
         if d3_url is None:
             d3_url = D3_URL
         return dedent(self.HTML.render(figid=self.figid,
