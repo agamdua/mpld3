@@ -126,8 +126,8 @@ class D3Figure(D3Base):
       {% for ax in axes %}
         {{ ax.style() }}
       {% endfor %}
-    </style>
     {% if extra_style %}{{ extra_style }}{% endif %}
+    </style>
     {% endif %}
     {% if standalone %}
     </head>
