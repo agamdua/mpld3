@@ -118,8 +118,6 @@ class CollectionToolTip(PluginBase):
     var labels = {{ labels }};
     {% endif %}
 
-    console.log(ax{{ axid }}.axes.selectAll(".paths{{ collid }}"))
-
     ax{{ axid }}.axes.selectAll(".paths{{ collid }}")
 	.on("mouseover", function(d, i){
                            tooltip
@@ -139,7 +137,6 @@ class CollectionToolTip(PluginBase):
 
     def __init__(self, points, labels=None,
                  hoffset=0, voffset=20):
-        print "initing"
         self.points = points
         self.labels = labels
         self.voffset = voffset
@@ -160,3 +157,82 @@ class CollectionToolTip(PluginBase):
         for ax in self.figure.axes:
             obj = obj or ax.objmap.get(self.points, None)
         return obj
+
+
+class ObjViewToolTip(PluginBase):
+    FIG_JS = jinja2.Template("""
+
+    var tooltip = fig.canvas.append("text")
+                  .attr("class", "tooltip-text")
+                  .attr("x", 0)
+                  .attr("y", 0)
+                  .text("")
+                  .attr("style", "text-anchor: middle;")
+                  .style("visibility", "hidden");
+
+    {% if labels %}
+    var labels = {{ labels }};
+    {% endif %}
+
+    var linedata = {{ linedata }};
+
+    var line = ax{{ lineaxid }}.axes.select(".line{{ lineid }}");
+
+    var linefunc = d3.svg.line()
+         .x(function(d) {return ax{{ lineaxid }}.x(d[0]);})
+         .y(function(d) {return ax{{ lineaxid }}.y(d[1]);})
+         .interpolate("linear")
+         .defined(function (d) {return !isNaN(d[0]) && !isNaN(d[1]); });
+
+    ax{{ axid }}.axes.selectAll(".paths{{ collid }}")
+	.on("mouseover", function(d, i){
+                           tooltip
+                              .style("visibility", "visible")
+                              {% if labels %}
+                              tooltip.text(labels[i])
+                              {% else %}
+                              tooltip.text("(" + d[0] + ", " + d[1] + ")")
+                              {% endif %};
+                           line.attr("d", linefunc(linedata[i]));
+})
+	.on("mousemove", function(d, i){
+                                   tooltip
+                                       .attr('x', event.x - {{ hoffset }})
+                                       .attr('y', event.y - {{ voffset }});})
+	.on("mouseout", function(d, i){tooltip.style("visibility",
+                                                     "hidden");});
+
+    """)
+
+    def __init__(self, points, labels=None,
+                 line_to_change=None,
+                 linedata=None,
+                 hoffset=0, voffset=20):
+        self.points = points
+        self.labels = labels
+        self.voffset = voffset
+        self.hoffset = hoffset
+        self.id = self.generate_unique_id()
+        self.line_to_change = line_to_change
+        self.linedata = linedata
+
+    def _fig_js_args(self):
+        coll, line = self._get_obj()
+        return dict(id=self.id,
+                    hoffset=self.hoffset,
+                    voffset=self.voffset,
+                    axid=coll.axid,
+                    collid=coll.collid,
+                    lineaxid=line.axid,
+                    lineid=line.lineid,
+                    linedata=json.dumps(self.linedata),
+                    labels=json.dumps(self.labels),
+                    line_to_change=self.line_to_change)
+
+    def _get_obj(self):
+        collection = None
+        line = None
+        for ax in self.figure.axes:
+            collection = collection or ax.objmap.get(self.points, None)
+            line = line or ax.objmap.get(self.line_to_change, None)
+        return collection, line
