@@ -72,15 +72,18 @@ class LineToolTip(PluginBase):
                               tooltip.text("(" + d[0] + ", " + d[1] + ")")
                               {% endif %};})
 	.on("mousemove", function(d, i){
-                                   tooltip
-                                       .attr('x', event.x - {{ hoffset }})
-                                       .attr('y', event.y - {{ voffset }});})
+                              // This doesn't work in the notebook
+                              // xy = d3.mouse(fig.canvas.node());
+                              var ctm = fig.canvas.node().getScreenCTM();
+                              tooltip
+                                 .attr('x', event.x - ctm.e - {{ hoffset }})
+                                 .attr('y', event.y - ctm.f - {{ voffset }});})
 	.on("mouseout", function(d, i){tooltip.style("visibility",
                                                      "hidden");});
     """)
 
     def __init__(self, line, labels=None,
-                 hoffset=0, voffset=20):
+                 hoffset=0, voffset=10):
         self.line = line
         self.labels = labels
         self.voffset = voffset
@@ -128,15 +131,18 @@ class CollectionToolTip(PluginBase):
                               tooltip.text("(" + d[0] + ", " + d[1] + ")")
                               {% endif %};})
 	.on("mousemove", function(d, i){
-                                   tooltip
-                                       .attr('x', event.x - {{ hoffset }})
-                                       .attr('y', event.y - {{ voffset }});})
+                              // This doesn't work in the notebook
+                              // xy = d3.mouse(fig.canvas.node());
+                              var ctm = fig.canvas.node().getScreenCTM();
+                              tooltip
+                                 .attr('x', event.x - ctm.e - {{ hoffset }})
+                                 .attr('y', event.y - ctm.f - {{ voffset }});})
 	.on("mouseout", function(d, i){tooltip.style("visibility",
                                                      "hidden");});
     """)
 
     def __init__(self, points, labels=None,
-                 hoffset=0, voffset=20):
+                 hoffset=0, voffset=10):
         self.points = points
         self.labels = labels
         self.voffset = voffset
@@ -196,9 +202,12 @@ class ObjViewToolTip(PluginBase):
                            line.attr("d", linefunc(linedata[i]));
 })
 	.on("mousemove", function(d, i){
-                                   tooltip
-                                       .attr('x', event.x - {{ hoffset }})
-                                       .attr('y', event.y - {{ voffset }});})
+                              // This doesn't work in the notebook
+                              // xy = d3.mouse(fig.canvas.node());
+                              var ctm = fig.canvas.node().getScreenCTM();
+                              tooltip
+                                 .attr('x', event.x - ctm.e - {{ hoffset }})
+                                 .attr('y', event.y - ctm.f - {{ voffset }});})
 	.on("mouseout", function(d, i){tooltip.style("visibility",
                                                      "hidden");});
 
